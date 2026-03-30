@@ -69,7 +69,34 @@ export async function updateCustomer(row: FormItemProps) {
   return { code: 0, message: "操作成功" };
 }
 
-/** 删除客户 */
+/** 导出全量数据（带筛选，无分页） */
+export async function exportCustomerAll(
+  params: Omit<ListParams, "currentPage" | "pageSize"> = {}
+) {
+  const { name, level, agent } = params;
+  let query = supabase
+    .from("customers")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (name) query = query.ilike("name", `%${name}%`);
+  if (level) query = query.eq("level", level);
+  if (agent) query = query.ilike("agent", `%${agent}%`);
+
+  const { data, error } = await query;
+  if (error) return { code: -1, message: error.message, data: null };
+  return { code: 0, message: "操作成功", data: data ?? [] };
+}
+
+/** 批量新增客户 */
+export async function batchCreateCustomer(
+  rows: Omit<FormItemProps, "id" | "created_at">[]
+) {
+  const { error } = await supabase.from("customers").insert(rows.map(sanitize));
+  if (error) return { code: -1, message: error.message };
+  return { code: 0, message: "操作成功" };
+}
+
 export async function deleteCustomer(id: number) {
   const { error } = await supabase.from("customers").delete().eq("id", id);
   if (error) return { code: -1, message: error.message };

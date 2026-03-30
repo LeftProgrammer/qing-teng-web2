@@ -16,7 +16,6 @@ defineOptions({
 });
 
 const formRef = ref();
-const tableRef = ref();
 
 const {
   form,
@@ -24,12 +23,18 @@ const {
   columns,
   dataList,
   pagination,
+  importVisible,
+  importLoading,
+  importPreview,
   onSearch,
   resetForm,
   openDialog,
   handleDelete,
   handleExport,
   handleImport,
+  handleDownloadTemplate,
+  handleFileChange,
+  handleImportConfirm,
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange
@@ -102,7 +107,11 @@ const {
         <el-button :icon="useRenderIcon(Upload)" @click="handleImport">
           导入
         </el-button>
-        <el-button :icon="useRenderIcon(Download)" @click="handleExport">
+        <el-button
+          :icon="useRenderIcon(Download)"
+          :loading="loading"
+          @click="handleExport"
+        >
           导出
         </el-button>
       </template>
@@ -159,6 +168,73 @@ const {
         </pure-table>
       </template>
     </PureTableBar>
+
+    <!-- 导入弹窗 -->
+    <el-dialog
+      v-model="importVisible"
+      title="导入客户数据"
+      width="480px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="!importLoading"
+    >
+      <el-alert
+        type="info"
+        :closable="false"
+        class="mb-4"
+        description="请按模板格式填写数据，必填字段：姓名、电话1。不支持 id 和创建时间列，导入时将自动忽略。"
+      />
+
+      <el-button class="mb-4" @click="handleDownloadTemplate">
+        <template #icon>
+          <IconifyIconOffline icon="ep:download" />
+        </template>
+        下载导入模板
+      </el-button>
+
+      <el-upload
+        drag
+        accept=".xlsx,.xls"
+        :auto-upload="false"
+        :limit="1"
+        :show-file-list="true"
+        :on-change="handleFileChange"
+      >
+        <el-icon class="el-icon--upload text-4xl mb-2">
+          <IconifyIconOffline icon="ep:upload-filled" />
+        </el-icon>
+        <div class="el-upload__text">
+          将 Excel 文件拖到此处，或 <em>点击上传</em>
+        </div>
+        <template #tip>
+          <div class="el-upload__tip">仅支持 .xlsx、.xls 格式</div>
+        </template>
+      </el-upload>
+
+      <div v-if="importPreview.count > 0" class="mt-4">
+        <el-alert
+          type="success"
+          :closable="false"
+          :title="`已解析到 ${importPreview.count} 条有效数据，点击确认导入`"
+        />
+      </div>
+      <div
+        v-else-if="importPreview.data.length === 0 && importPreview.count === 0"
+      />
+
+      <template #footer>
+        <el-button :disabled="importLoading" @click="importVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="importLoading"
+          :disabled="importPreview.count === 0"
+          @click="handleImportConfirm"
+        >
+          确认导入
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
