@@ -1,6 +1,13 @@
 // 模拟后端动态生成路由
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
-import { system, monitor, permission, frame, tabs } from "@/router/enums";
+import {
+  system,
+  monitor,
+  permission,
+  frame,
+  tabs,
+  customer
+} from "@/router/enums";
 
 /**
  * roles：页面级别权限，这里模拟二种 "admin"、"common"
@@ -278,6 +285,26 @@ const frameRouter = {
   ]
 };
 
+const customerRouter = {
+  path: "/customer",
+  meta: {
+    icon: "ri:contacts-line",
+    title: "客户管理",
+    rank: customer
+  },
+  children: [
+    {
+      path: "/customer/index",
+      name: "CustomerManage",
+      meta: {
+        icon: "ri:contacts-book-line",
+        title: "客户列表",
+        roles: ["admin", "common"]
+      }
+    }
+  ]
+};
+
 const tabsRouter = {
   path: "/tabs",
   meta: {
@@ -333,7 +360,8 @@ export default defineFakeRoute([
           systemMonitorRouter,
           permissionRouter,
           frameRouter,
-          tabsRouter
+          tabsRouter,
+          customerRouter
         ]
       };
     }
